@@ -2,35 +2,52 @@ import { useState, useEffect } from "react";
 import Button from "./Button";
 
 function App() {
-  const [toDo, setToDo] = useState(""); //state
-  const [toDos, setToDos] = useState([]); //empty array
-  const onChange = (e) => setToDo(e.target.value);
+  useEffect(() => {
+    fetch("https://api.coinpaprika.com/v1/tickers") //api 불러오기
+      .then((response) => response.json())
+      .then((json) => {
+        setCoins(json);
+        setLoading(false);
+      });
+  }, []); //watching nothing
+
+  const [loading, setLoading] = useState(true);
+  const [coins, setCoins] = useState([]); //default 설정을 해줘야 length를 불러올 수 있다.
+  const [money, setMoney] = useState(0);
+  const [coin, setCoin] = useState(0);
+  const [value, setValue] = useState(0);
+
+  const onChange = (e) => setMoney(e.target.value);
+  const handleSelect = (e) => setCoin(e.target.value);
   const onSubmit = (e) => {
     e.preventDefault();
-    if (toDo === "") {
-      return;
-    }
-    setToDos((currentArray) => [toDo, ...currentArray]); // ...array -> add previous array's elements
-    setToDo("");
+    setValue((value) => money / coin);
   };
+
   return (
     <div>
-      <h1>MY TO DOS ({toDos.length})</h1>
+      <h1>The Coins! ({coins.length})</h1>
       <form onSubmit={onSubmit}>
         <input
+          type="number"
           onChange={onChange}
-          value={toDo}
-          type="text "
-          placeholder="Write your to do..."
+          value={money}
+          placeholder="Text the USD"
         />
-        <button>Add To Do</button>
+
+        <select onChange={handleSelect}>
+          {coins.map((coin) => (
+            <option value={coin.quotes.USD.price}>
+              {coin.name} ({coin.symbol}): {coin.quotes.USD.price} USD
+            </option>
+          ))}
+        </select>
+        <button>go!</button>
       </form>
+
+      {loading ? <strong>loading...</strong> : null}
       <hr />
-      <ul>
-        {toDos.map((item, index) => (
-          <li key={index}>{item}</li>
-        ))}{" "}
-      </ul>
+      <h2>{value} $</h2>
     </div>
   );
 }
